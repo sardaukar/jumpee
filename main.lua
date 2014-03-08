@@ -150,16 +150,10 @@ function initialize_player()
 end
 
 function random_hamster_position()
-  -- X is between (0+hamster.width) and (screen_width - hamster.width)
-  -- Y is between (screen_height - floor_y - player.height - 100) and (screen_height - floor_y - player.height - 300) ?
-
   baseline_y = floor_y - player.height
 
   x_pos = math.random(hamster.width, screen_width - hamster.width)
   y_pos = math.random(baseline_y - 100, baseline_y - 300)
-
-  print("X is " .. x_pos)
-  print("Y is " .. y_pos)
 
   return x_pos, y_pos
 end
