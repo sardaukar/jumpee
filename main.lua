@@ -10,17 +10,46 @@ function love.load()
 
   initialize_floor()
   initialize_player()
+  initialize_hamster()
 
-  jump_height = 300
+  jump_height = 600
   gravity = 400
+  score = 0
+  time = 5
+
+  font = love.graphics.newFont("font/PressStart2P.ttf", 18)
+  love.graphics.setFont(font)
 
   love.window.setTitle('JUMPEE!')
   love.window.setMode(screen_width, screen_height)
 end
 
 function love.update(dt)
+
+  if state == 'gameover' then
+    if love.keyboard.isDown(' ') then
+      state = 'play'
+      score = 0
+      time = 5
+      hamster.x, hamster.y = random_hamster_position()
+    end
+  end
+
   if state ~= 'play' then
     return
+  end
+
+  time = time - dt
+
+  if time <= 0 then
+    state = 'gameover'
+    time = 0
+  end
+
+  if check_collision() then
+    score = score + 1
+    time = 5
+    hamster.x, hamster.y = random_hamster_position()
   end
 
   if love.keyboard.isDown('left') then
@@ -66,14 +95,27 @@ function love.update(dt)
 
 end
 
+function check_collision()
+  return  player.x < hamster.x + hamster.width and
+          hamster.x < player.x + player.width and
+          player.y < hamster.y + hamster.height and
+          hamster.y < player.y + player.height
+end
+
 function love.draw()
   set_background()
   draw_floor()
 
   draw_player()
+  draw_hamster()
+
+  love.graphics.print("Score: " .. score, 100, 50)
+  love.graphics.print("Time : " .. math.floor(time),  100, 90)
 
   if state == 'pause' then
     draw_pause_overlay()
+  elseif state == 'gameover' then
+    draw_gameover_msg()
   end
 end
 
@@ -107,6 +149,33 @@ function initialize_player()
   }
 end
 
+function random_hamster_position()
+  -- X is between (0+hamster.width) and (screen_width - hamster.width)
+  -- Y is between (screen_height - floor_y - player.height - 100) and (screen_height - floor_y - player.height - 300) ?
+
+  baseline_y = floor_y - player.height
+
+  x_pos = math.random(hamster.width, screen_width - hamster.width)
+  y_pos = math.random(baseline_y - 100, baseline_y - 300)
+
+  print("X is " .. x_pos)
+  print("Y is " .. y_pos)
+
+  return x_pos, y_pos
+end
+
+function initialize_hamster()
+  hamster = {
+    height = 82,
+    width = 82,
+    x = 0,
+    y = 0,
+    image = love.graphics.newImage('gfx/hamster.png')
+  }
+
+  hamster.x, hamster.y = random_hamster_position()
+end
+
 function set_background()
   love.graphics.setBackgroundColor(background_color)
 end
@@ -114,6 +183,10 @@ end
 function draw_floor()
   love.graphics.setColor(floor_color)
   love.graphics.rectangle('fill', 0, floor_y, screen_width, (screen_height - floor_y) )
+end
+
+function draw_hamster()
+  love.graphics.draw(hamster.image, hamster.x, hamster.y, 0, .5,.5)
 end
 
 function draw_player()
@@ -128,4 +201,11 @@ end
 function draw_pause_overlay()
   love.graphics.setColor(0, 0, 0, 100)
   love.graphics.rectangle('fill', 0, 0, screen_width, screen_height)
+end
+
+function draw_gameover_msg()
+  love.graphics.setColor(0, 0, 0, 100)
+  love.graphics.rectangle('fill', 0, 0, screen_width, screen_height)
+
+  love.graphics.print("You dead, brah! Press SPACE to try again!", 10, 300)
 end
