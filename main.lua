@@ -1,3 +1,5 @@
+require('AnAL')
+
 function love.load()
   screen_width = 800
   screen_height = 600
@@ -19,6 +21,10 @@ function love.load()
 
   font = love.graphics.newFont("font/PressStart2P.ttf", 18)
   love.graphics.setFont(font)
+
+  local img = love.graphics.newImage('gfx/boom.png')
+  anim = newAnimation(img, 96, 96, 0.1, 0)
+  anim:setMode('once')
 
   love.window.setTitle('JUMPEE!')
   love.window.setMode(screen_width, screen_height)
@@ -49,8 +55,13 @@ function love.update(dt)
   if check_collision() then
     score = score + 1
     time = 5
+    anim.x, anim.y = hamster.x, hamster.y
+    anim:reset()
+    anim:play()
     hamster.x, hamster.y = random_hamster_position()
   end
+
+  anim:update(dt)
 
   if love.keyboard.isDown('left') then
     if looking == 'right' then
@@ -108,6 +119,8 @@ function love.draw()
 
   draw_player()
   draw_hamster()
+
+  anim:draw(anim.x, anim.y)
 
   love.graphics.print("Score: " .. score, 100, 50)
   love.graphics.print("Time : " .. math.floor(time),  100, 90)
